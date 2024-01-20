@@ -13,42 +13,59 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	// rooms["room"] = Room{"You find yourself in a dark room... You see a \033[4mdoor\033[0m.", map[string]string{"door": "end"}}
-	rooms["room"] = Room{"You find yourself in a dark room... You see a #Bdoor#B.", map[string]string{"door": "end"}, []string{"key"}, map[string]string{"key": "There is a #Bkey#B on the ground."}}
-	rooms["end"] = Room{"Nothing to see here... You can go back where you woke up in the \033[4mroom\033[0m.", map[string]string{"room": "room"}, []string{}, map[string]string{}}
+	doorOpen := false
+	rooms["room"] = StartRoom{"You find yourself in a dark room... You see a #Bdoor#B.", map[string]string{"door": "end"}, &doorOpen, map[string]bool{"key": true}, map[string]string{"key": "There is a #Bkey#B on the ground."}}
+	rooms["end"] = Basicroom{"Nothing to see here... You can go back where you woke up in the \033[4mroom\033[0m.", map[string]string{"room": "room"}, map[string]bool{}, map[string]string{}}
 
 	position := "room"
-	bag := []string{"key"}
+	bag := []string{}
 
 	for {
-		rooms[position].show(bag)
+		fmt.Println(rooms[position].getDescription())
 
-		fmt.Printf("> ")
+		fmt.Printf(" > ")
 		input, _ := reader.ReadString('\n')
 		input = input[:len(input)-1]
 		words := strings.Split(input, " ")
 
-		if input == "exit" {
-			break
-		}
-
-		if words[0] == "help" {
+		switch words[0] {
+		case "exit", ":wq", "wq":
+			goto end
+		case "bag":
+			if len(bag) > 0 {
+				fmt.Println("In your bag, you have:\n -" + strings.Join(bag, "\n -"))
+			} else {
+				fmt.Println("You have nothing in your bag.")
+			}
+		case "help":
 			if len(words) == 1 {
-				fmt.Println("  help: prints this message\n  exit: exits the game\n  goto <place>: attemps to go to <place>")
+				fmt.Println("   help: prints this message\n   exit: exits the game\n   goto <place>: attemps to go to <place>")
 			} else {
 				switch words[1] {
-				case "goto":
+				case "goto", "go":
 					fmt.Println("  Valid destinations are often underlined.")
+				case "help":
+					fmt.Println("Wdym brotha?")
 				default:
 					fmt.Println(words[1] + " is not a valid command. Type \"help\" to see the valid commands.")
 				}
 			}
-		}
-
-		if words[0] == "goto" && len(words) > 1 {
-			if exit, ok := rooms[position].exits[words[1]]; ok {
-				position = exit
+		case "goto", "go":
+			if len(words) > 1 {
+				rooms[position].Goto(words[1], &position)
 			}
+		case "use":
+			if len(words) > 1 {
+				rooms[position].Use(words[1], &bag)
+			}
+		case "take", "get":
+			if len(words) > 1 {
+				rooms[position].Take(words[1], &bag)
+			}
+		default:
+			fmt.Println(words[0] + " is not a valid command.")
 		}
 		fmt.Println()
 	}
+end:
 }

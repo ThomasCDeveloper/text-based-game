@@ -2,16 +2,55 @@ package main
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 )
 
-type Room struct {
+type Room interface {
+	getDescription() string
+
+	Goto(dist string, current *string)
+	Use(obj string, bag *[]string)
+	Take(obj string, bag *[]string)
+}
+
+type Basicroom struct {
 	description string
 	exits       map[string]string
 
-	objects        []string
+	objects        map[string]bool
 	objDescription map[string]string
+}
+
+func (r Basicroom) getDescription() string {
+	description := r.description
+
+	for objName, isInRoom := range r.objects {
+		if isInRoom {
+			description += " " + r.objDescription[objName]
+		}
+	}
+	description = replaceInString(description, "#B", "\033[4m", "\033[0m")
+
+	return description
+}
+
+func (r Basicroom) Goto(dist string, current *string) {
+	if val, ok := r.exits[dist]; ok {
+		*current = val
+	} else {
+		fmt.Println("\"" + dist + "\" is not a valid destination.")
+	}
+}
+
+func (r Basicroom) Use(obj string, bag *[]string) {
+	fmt.Println(obj + " is no use here.")
+}
+
+func (r Basicroom) Take(obj string, bag *[]string) {
+	if val, ok := r.objects[obj]; val && ok {
+		*bag = append(*bag, obj)
+		r.objects[obj] = false
+	}
 }
 
 func replaceInString(in string, del string, rep1 string, rep2 string) string {
@@ -25,15 +64,53 @@ func replaceInString(in string, del string, rep1 string, rep2 string) string {
 	return strings.Join(parts, "")
 }
 
-func (room Room) show(bag []string) {
-	description := room.description
+type StartRoom struct {
+	description string
+	exits       map[string]string
 
-	for _, objName := range room.objects {
-		if !slices.Contains(bag, objName) {
-			description += " " + room.objDescription[objName]
+	isDoorOpen *bool
+
+	objects        map[string]bool
+	objDescription map[string]string
+}
+
+func (r StartRoom) getDescription() string {
+	description := r.description
+
+	for objName, isInRoom := range r.objects {
+		if isInRoom {
+			description += " " + r.objDescription[objName]
 		}
 	}
-
 	description = replaceInString(description, "#B", "\033[4m", "\033[0m")
-	fmt.Println(description)
+
+	return description
+}
+
+func (r StartRoom) Goto(dist string, current *string) {
+	if dist == "door" {
+		if *r.isDoorOpen {
+			*current = r.exits[dist]
+		} else {
+			fmt.Println("The door is closed.")
+		}
+	} else {
+		fmt.Println("\"" + dist + "\" is not a valid destination.")
+	}
+}
+
+func (r StartRoom) Use(obj string, bag *[]string) {
+	if obj == "key" {
+		*r.isDoorOpen = !*r.isDoorOpen
+		fmt.Println("You used the key!")
+	} else {
+		fmt.Println(obj + " is no use here.")
+	}
+}
+
+func (r StartRoom) Take(obj string, bag *[]string) {
+	if val, ok := r.objects[obj]; val && ok {
+		*bag = append(*bag, obj)
+		r.objects[obj] = false
+	}
 }
