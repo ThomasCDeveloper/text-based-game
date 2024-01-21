@@ -9,8 +9,11 @@ import (
 
 var rooms = map[string]Room{}
 
+var testDialog = Dialog{[]int{80, 80, 130, 90, 140}, []string{"Aaaaaaaarghh!! ", "Hey man! ", "You woke me up!! ", "You ask me who I am ?! ", "Boy oh boy, I live here!\n"}, []int{250, 450, 250, 300, 0}}
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
+	testDialog.print()
 
 	// rooms["room"] = Room{"You find yourself in a dark room... You see a \033[4mdoor\033[0m.", map[string]string{"door": "end"}}
 	rooms = initRooms()
