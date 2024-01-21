@@ -13,15 +13,18 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	// rooms["room"] = Room{"You find yourself in a dark room... You see a \033[4mdoor\033[0m.", map[string]string{"door": "end"}}
-	doorOpen := false
-	rooms["room"] = StartRoom{"You find yourself in a dark room... You see a #Bdoor#B.", map[string]string{"door": "end"}, &doorOpen, map[string]bool{"key": true}, map[string]string{"key": "There is a #Bkey#B on the ground."}}
-	rooms["end"] = Basicroom{"Nothing to see here... You can go back where you woke up in the \033[4mroom\033[0m.", map[string]string{"room": "room"}, map[string]bool{}, map[string]string{}}
+	rooms = initRooms()
 
 	position := "room"
+	lastposition := "never"
 	bag := []string{}
 
 	for {
-		fmt.Println(rooms[position].getDescription())
+		if lastposition != position {
+			fmt.Println()
+			fmt.Println(rooms[position].getDescription())
+			lastposition = position
+		}
 
 		fmt.Printf(" > ")
 		input, _ := reader.ReadString('\n')
@@ -65,7 +68,7 @@ func main() {
 		default:
 			fmt.Println(words[0] + " is not a valid command.")
 		}
-		fmt.Println()
+
 	}
 end:
 }

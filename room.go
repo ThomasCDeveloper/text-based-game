@@ -65,8 +65,7 @@ func replaceInString(in string, del string, rep1 string, rep2 string) string {
 }
 
 type StartRoom struct {
-	description string
-	exits       map[string]string
+	exits map[string]string
 
 	isDoorOpen *bool
 
@@ -75,7 +74,7 @@ type StartRoom struct {
 }
 
 func (r StartRoom) getDescription() string {
-	description := r.description
+	description := "you find yourself in a dark room. There seems to be a #Bdoor#B."
 
 	for objName, isInRoom := range r.objects {
 		if isInRoom {
@@ -92,7 +91,7 @@ func (r StartRoom) Goto(dist string, current *string) {
 		if *r.isDoorOpen {
 			*current = r.exits[dist]
 		} else {
-			fmt.Println("The door is closed.")
+			fmt.Println("The door is locked.")
 		}
 	} else {
 		fmt.Println("\"" + dist + "\" is not a valid destination.")
@@ -112,5 +111,6 @@ func (r StartRoom) Take(obj string, bag *[]string) {
 	if val, ok := r.objects[obj]; val && ok {
 		*bag = append(*bag, obj)
 		r.objects[obj] = false
+		fmt.Println("You took the key.")
 	}
 }
